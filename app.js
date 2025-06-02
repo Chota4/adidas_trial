@@ -7,8 +7,8 @@ const session = require('express-session');
 const flash = require('connect-flash');
 const fileupload = require('express-fileupload');
 const ejs = require('ejs');
-const connectDB = require('./config/db');
-const upload = require('./utils/uploadImage');
+const connectDB = require('./backend/config/db');
+const upload = require('./backend/utils/uploadImage');
 
 // Connect to database
 connectDB();
@@ -16,26 +16,31 @@ connectDB();
 const app = express();
 
 // View engine
-app.set('views', path.join(__dirname, '../client/views'));
+app.set('views', path.join(__dirname, '../frontend/views'));
 app.set('view engine', 'ejs');
 
 // Middleware
-app.use(express.static(path.join(__dirname, '../client/public')));
+app.use(express.static(path.join(__dirname, '../frontend/public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false
+  secret: 'Chota',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
+// Add temporary debug log:
+console.log('Session secret:', process.env.SESSION_SECRET ? 'Loaded' : 'MISSING!');
 app.use(flash());
 app.use(fileupload());
 
 // Routes
-app.use('/', require('./routes/authRoutes'));
-app.use('/products', require('./routes/productRoutes'));
-app.use('/users', require('./routes/userRoutes'));
+const authRoutes = require('./backend/routes/authRoutes');
+app.use('/auth', authRoutes); 
+app.use('/', require('./backend/routes/authRoutes'));
+app.use('/products', require('./backend/routes/productRoutes'));
+app.use('/users', require('./backend/routes/userRoutes'));
 
 // Handle file uploads
 app.post('/upload', upload.single('image'), (req, res) => {
@@ -43,8 +48,8 @@ app.post('/upload', upload.single('image'), (req, res) => {
 });
 
 // Error handling
-app.use(require('./middleware/error').notFound);
-app.use(require('./middleware/error').errorHandler);
+app.use(require('./backend/middleware/auth').notFound);
+app.use(require('./backend/middleware/error').errorHandler);
 app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).render('error', { 
@@ -54,5 +59,7 @@ app.use((err, req, res, next) => {
   // ... other error checks
 });
 
+// In app.js - Test basic server
+app.get('/ping', (req, res) => res.send('pong'));
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
