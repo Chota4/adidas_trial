@@ -1,0 +1,47 @@
+<%- include('../../../partials/head', { title: 'Edit Product' }) %>
+
+<div class="admin-form-container">
+  <h1>Edit Product</h1>
+  <form action="/admin/products/<%= product._id %>?_method=PUT" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label>Current Image</label>
+      <img src="<%= product.image %>" class="current-image">
+    </div>
+    
+    <div class="form-group">
+      <label>Change Image</label>
+      <input type="file" name="image" accept="image/*">
+    </div>
+    
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" name="name" value="<%= product.name %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Price ($)</label>
+      <input type="number" name="price" step="0.01" value="<%= product.price %>" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Brand</label>
+      <select name="brand" required>
+        <option value="Adidas" <%= product.brand === 'Adidas' ? 'selected' : '' %>>Adidas</option>
+        <option value="Adidas Originals" <%= product.brand === 'Adidas Originals' ? 'selected' : '' %>>Adidas Originals</option>
+        <option value="Adidas Performance" <%= product.brand === 'Adidas Performance' ? 'selected' : '' %>>Adidas Performance</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" rows="5" required><%= product.description %></textarea>
+    </div>
+    
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Update Product</button>
+      <a href="/admin/products" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<%- include('../../../partials/footer') %>

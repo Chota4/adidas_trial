@@ -1,0 +1,27 @@
+<%- include('../partials/head', { title: product.name }) %>
+
+<div class="product-detail">
+  <div class="product-gallery">
+    <img src="<%= product.image %>" alt="<%= product.name %>" class="main-image">
+  </div>
+
+  <div class="product-info">
+    <h1><%= product.name %></h1>
+    <div class="product-meta">
+      <span class="price">$<%= product.price.toFixed(2) %></span>
+      <span class="sku">SKU: <%= product._id.toString().slice(-6).toUpperCase() %></span>
+    </div>
+
+    <div class="product-description">
+      <h3>Description</h3>
+      <p><%= product.description %></p>
+    </div>
+
+    <form action="/frontend/views/cart/index.ejs" method="POST">
+      <input type="hidden" name="productId" value="<%= product._id %>">
+      <button type="submit" class="btn-add-to-cart">Add to Cart</button>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

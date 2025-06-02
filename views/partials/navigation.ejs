@@ -1,0 +1,15 @@
+<nav class="bg-gray-800 text-white py-2">
+  <div class="container mx-auto px-4">
+    <ul class="flex space-x-6">
+      <a href="/frontend/views/cart/index.ejs" class="nav-link">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cart-count"><%= cartItemCount || 0 %></span>
+      </a>
+      <li><a href="/" class="hover:text-gray-300">Home</a></li>
+      <li><a href="/frontend/views/products/" class="hover:text-gray-300">Products</a></li>
+      <% if (user && user.isAdmin) { %>
+        <li><a href="/admin/products" class="hover:text-gray-300">Admin</a></li>
+      <% } %>
+    </ul>
+  </div>
+</nav>

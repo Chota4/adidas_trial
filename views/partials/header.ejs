@@ -1,0 +1,25 @@
+<header class="bg-black text-white py-4">
+  <div class="container mx-auto px-4 flex justify-between items-center">
+    <a href="/" class="flex items-center">
+      <img src="/images/adidas-logo.png" alt="Adidas Logo" class="h-10 mr-2">
+      <span class="text-xl font-bold">ADIDAS STORE</span>
+    </a>
+    
+    <div class="flex items-center space-x-4">
+      <% if (user) { %>
+        <a href="/users/profile" class="flex items-center">
+          <img src="<%= user.avatar %>" alt="<%= user.name %>" class="w-8 h-8 rounded-full mr-2">
+          <span><%= user.name %></span>
+        </a>
+        <a href="/auth/logout" class="nav-link">Logout</a>
+      <% } else { %>
+        <a href="/auth/login" class="nav-link">Login</a>
+        <a href="/auth/register" class="nav-link">Register</a>
+      <% } %>
+      <a href="/cart" class="nav-link flex items-center">
+        <i class="fas fa-shopping-cart mr-1"></i>
+        <span id="cart-count">0</span>
+      </a>
+    </div>
+  </div>
+</header>

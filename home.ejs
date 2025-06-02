@@ -1,0 +1,27 @@
+<%- include('./partials/head', { title: 'Adidas Official Store' }) %>
+
+<main class="homepage">
+  <section class="hero">
+    <div class="hero-content">
+      <h1>New Collection</h1>
+      <a href="/products" class="btn-hero">Shop Now</a>
+    </div>
+  </section>
+
+  <section class="featured-products">
+    <h2>Featured Products</h2>
+    <div class="product-grid">
+      <% featuredProducts.forEach(product => { %>
+        <div class="product-card">
+          <a href="/products/<%= product._id %>">
+            <img src="<%= product.image %>" alt="<%= product.name %>">
+            <h3><%= product.name %></h3>
+            <div class="price">$<%= product.price.toFixed(2) %></div>
+          </a>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include('./partials/footer') %>

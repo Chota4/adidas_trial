@@ -1,0 +1,58 @@
+<%- include('../partials/head', { title: 'Your Shopping Cart' }) %>
+
+<div class="cart-container">
+  <h1>Your Cart</h1>
+  
+  <% if (cart.items.length === 0) { %>
+    <div class="empty-cart">
+      <i class="fas fa-shopping-cart"></i>
+      <p>Your cart is empty</p>
+      <a href="/products" class="btn btn-primary">Continue Shopping</a>
+    </div>
+  <% } else { %>
+    <div class="cart-grid">
+      <div class="cart-items">
+        <% cart.items.forEach(item => { %>
+          <div class="cart-item">
+            <img src="<%= item.product.image %>" alt="<%= item.product.name %>">
+            <div class="item-details">
+              <h3><%= item.product.name %></h3>
+              <p class="price">$<%= item.product.price.toFixed(2) %></p>
+              <div class="quantity-controls">
+                <form action="/cart/decrease/<%= item.product._id %>" method="POST">
+                  <button type="submit" class="qty-btn">-</button>
+                </form>
+                <span class="quantity"><%= item.quantity %></span>
+                <form action="/cart/increase/<%= item.product._id %>" method="POST">
+                  <button type="submit" class="qty-btn">+</button>
+                </form>
+              </div>
+              <form action="/cart/remove/<%= item.product._id %>" method="POST">
+                <button type="submit" class="btn-remove">Remove</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="cart-summary">
+        <h3>Order Summary</h3>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>$<%= cart.totalPrice.toFixed(2) %></span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>Free</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span>$<%= cart.totalPrice.toFixed(2) %></span>
+        </div>
+        <a href="/checkout" class="btn btn-primary btn-checkout">Proceed to Checkout</a>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

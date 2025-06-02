@@ -1,0 +1,20 @@
+<%- include('../../partials/head', { title: 'Add Product' }) %>
+
+<div class="admin-form-container">
+  <h1>Add New Product</h1>
+  <form action="/admin/products" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label>Product Image</label>
+      <input type="file" name="image" accept="image/*" required>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="name" required>
+    </div>
+    <div class="form-group">
+      <label>Price</label>
+      <input type="number" name="price" step="0.01" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Product</button>
+  </form>
+</div>
