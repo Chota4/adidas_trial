@@ -1,55 +1,64 @@
 const express = require('express');
 const router = express.Router();
 
-// Import controller methods with error handling
-let controllers;
-try {
-    controllers = require('../controllers/authController');
-} catch (err) {
-    console.error('❌ Failed to load authController:', err);
-    process.exit(1); // Exit if controllers can't be loaded
-}
+// Load PostgreSQL model (optional for future use)
+const UserModel = require('../models/User');
 
-// Destructure methods with null checks
-const {
-    showLoginForm,
-    login,
-    logout,
-    showRegisterForm,
-    register,
-    show2faForm,
-    verify2fa,
-    show2faSetup,
-    enable2fa
-} = controllers || {};
+// Inject PostgreSQL model into req.models (optional)
+router.use((req, res, next) => {
+  const pool = req.app.locals.pool;
+  req.models = {
+    User: new UserModel(pool),
+  };
+  next();
+});
 
-// Verify all required methods exist
-const requiredMethods = [
-    'showLoginForm', 'login', 'logout', 
-    'showRegisterForm', 'register',
-    'show2faForm', 'verify2fa',
-    'show2faSetup', 'enable2fa'
-];
-
-for (const method of requiredMethods) {
-    if (typeof controllers[method] !== 'function') {
-        console.error(`❌ Missing required controller method: ${method}`);
-    }
-}
-
-// Import middleware
+// Load middleware
 let protect;
 try {
-    protect = require('../middleware/auth').protect;
+  protect = require('../middleware/auth').protect;
 } catch (err) {
-    console.error('❌ Failed to load auth middleware:', err);
-    protect = (req, res, next) => next(); // Fallback if middleware fails
+  console.error('❌ Failed to load auth middleware:', err);
+  protect = (req, res, next) => next(); // Fallback if protect not implemented
 }
 
-// Test route
+// Load controller
+let controllers;
+try {
+  controllers = require('../controllers/authController');
+} catch (err) {
+  console.error('❌ Failed to load authController:', err);
+  process.exit(1);
+}
+
+// Destructure controller methods
+const {
+  showLoginForm,
+  login,
+  logout,
+  showRegisterForm,
+  register,
+  show2faForm,
+  verify2fa,
+  show2faSetup,
+  enable2fa
+} = controllers;
+
+// Verify all required methods exist
+[
+  'showLoginForm', 'login', 'logout',
+  'showRegisterForm', 'register',
+  'show2faForm', 'verify2fa',
+  'show2faSetup', 'enable2fa'
+].forEach(method => {
+  if (typeof controllers[method] !== 'function') {
+    console.error(`❌ Missing controller method: ${method}`);
+  }
+});
+
+// Debug route
 router.get('/debug-test', (req, res) => {
-    console.log('✅ Route test successful');
-    res.send('Route working!');
+  res.send('✅ Auth route working');
 });
 
 // Authentication routes
@@ -65,12 +74,10 @@ router.post('/2fa', verify2fa);
 router.get('/setup-2fa', protect, show2faSetup);
 router.post('/enable-2fa', protect, enable2fa);
 
-// Route error handler
+// Global error handler
 router.use((err, req, res, next) => {
-    console.error('Route error:', err);
-    res.status(500).send('Authentication error');
+  console.error('❌ Auth route error:', err);
+  res.status(500).send('Authentication route error');
 });
-console.log('✅ Auth routes loaded successfully');
 
-// ✅ Export the router — NOT the functions (you're using routes here)
 module.exports = router;

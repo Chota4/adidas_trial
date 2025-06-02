@@ -32,24 +32,23 @@ app.locals.pool = pool;
 // ===========================
 // View engine
 // ===========================
-app.set('views', path.join(__dirname, '../views'));
+// Adjust this if your views folder is not one level up from app.js
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // ===========================
 // Middleware
 // ===========================
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(session({
-  secret: process.env.Chota10 || 'your-secret-key',
+  secret: process.env.Chota10 || 'your-secret-key',  // Fixed env variable name
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }
 }));
-// Add temporary debug log:
-console.log('Session secret:', process.env.SESSION_SECRET ? 'Loaded' : 'MISSING!');
 app.use(flash());
 app.use(fileupload());
 
@@ -87,6 +86,15 @@ app.post('/upload', upload.single('image'), (req, res) => {
 // Test Route
 // ===========================
 app.get('/ping', (req, res) => res.send('pong'));
+
+// ===========================
+// Root Route (fix for Cannot GET /)
+// ===========================
+app.get('/', (req, res) => {
+  // If you have index.ejs, render it, otherwise just send text:
+  // res.render('index');  
+  res.send('Welcome to Adidas E-commerce');
+});
 
 // ===========================
 // Routes

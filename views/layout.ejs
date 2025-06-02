@@ -1,34 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="C:\Users\acer\OneDrive\Desktop\adidas\adidas_trial\frontend\public\favico.ico" rel="icon" type="image/x-icon">
-    <%- include('partials/head', {title}) %>
-</head>
-<body>
-    <%- include('partials/header') %>
-    <%- include('partials/navigation') %>
-    
-    <main class="container">
-        <%- include('partials/messages') %>
-        <%- body %>
-    </main>
-
-    <%- include('partials/footer') %>
-    <script src="/js/main.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Adidas Store | <%= title %></title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="/favico.ico" rel="icon" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
 </head>
 <body>
     <%- include('partials/header') %>
     <%- include('partials/navigation') %>
-    
+
     <main class="container">
         <%- include('partials/messages') %>
         <%- body %>

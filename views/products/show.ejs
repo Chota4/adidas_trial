@@ -2,7 +2,7 @@
 
 <div class="product-detail">
   <div class="product-gallery">
-    <img src="<%= product.image %>" alt="<%= product.name %>" class="main-image">
+    <img src="<%= product.image %>" alt="<%= product.name %>" class="main-image" />
   </div>
 
   <div class="product-info">
@@ -17,8 +17,8 @@
       <p><%= product.description %></p>
     </div>
 
-    <form action="/frontend/views/cart/index.ejs" method="POST">
-      <input type="hidden" name="productId" value="<%= product._id %>">
+    <form action="/cart" method="POST">
+      <input type="hidden" name="productId" value="<%= product._id %>" />
       <button type="submit" class="btn-add-to-cart">Add to Cart</button>
     </form>
   </div>

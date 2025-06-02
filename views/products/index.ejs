@@ -1,25 +1,8 @@
 <%- include('../partials/head', { title: 'Adidas Products' }) %>
 
-<div class="container">
+<div class="container" role="main" aria-label="All Products">
   <h1 class="page-title">All Products</h1>
   
-  <div class="product-grid">
+  <section class="product-grid" aria-live="polite">
     <% products.forEach(product => { %>
-      <div class="product-card">
-        <a href="/products/<%= product._id %>">
-          <img src="<%= image1 %>" alt="<%= product.name %>" class="product-image">
-          <div class="product-info">
-            <h3><%= product.name %></h3>
-            <div class="product-meta">
-              <span class="price">$<%= product.price.toFixed(2) %></span>
-              <span class="brand"><%= product.brand %></span>
-            </div>
-          </div>
-        </a>
-        <button class="btn-add-to-cart" data-id="<%= product._id %>">Add to Cart</button>
-      </div>
-    <% }) %>
-  </div>
-</div>
-
-<%- include('../partials/footer') %>
+      <article class="product-card" aria-labelledby="product-<%= product._id %>-name">

@@ -1,12 +1,12 @@
 <div class="auth-container">
   <h1>Two-Factor Authentication</h1>
-  
+
   <form action="/auth/2fa" method="POST" class="auth-form">
     <div class="form-group">
       <label for="2fa-code">Enter verification code from your authenticator app</label>
-      <input type="text" id="2fa-code" name="code" maxlength="6" required>
+      <input type="text" id="2fa-code" name="code" maxlength="6" required autocomplete="one-time-code" />
     </div>
-    
+
     <button type="submit" class="btn btn-primary">Verify</button>
   </form>
 </div>

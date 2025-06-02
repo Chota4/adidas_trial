@@ -1,231 +1,90 @@
-const User = require('../models/User');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
+const pool = require('../config/db');
 
-// @desc    Show login form
-// @route   GET /auth/login
+// Show login form (GET /login)
 exports.showLoginForm = (req, res) => {
-    res.render('auth/login', { 
-        title: 'Login' 
-    });
+  // Render a login page or send a message for API-only app
+  res.send('Render login form here');
 };
 
-// @desc    Show registration form
-// @route   GET /auth/register
-exports.showRegisterForm = (req, res) => {
-    res.render('auth/register', {
-        title: 'Register'
-    });
-};
-
-// @desc    Register user
-// @route   POST /auth/register
-exports.register = async (req, res) => {
-    const { name, email, password } = req.body;
-    
-    try {
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            req.flash('error', 'Email already registered');
-            return res.redirect('/auth/register');
-        }
-
-        const user = await User.create({
-            name,
-            email,
-            password
-        });
-
-        const token = generateToken(user._id);
-        res.cookie('jwt', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-        });
-
-        req.flash('success', 'Registration successful!');
-        res.redirect('/');
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Registration failed');
-        res.redirect('/auth/register');
-    }
-};
-
-// @desc    Login user
-// @route   POST /auth/login
-exports.login = async (req, res) => {
-    const { email, password } = req.body;
-    
-    try {
-        const user = await User.findOne({ email });
-        
-        if (!user || !(await user.matchPassword(password))) {
-            req.flash('error', 'Invalid email or password');
-            return res.redirect('/auth/login');
-        }
-
-        if (user.twoFactorEnabled) {
-            req.session.tempUserId = user._id;
-            return res.redirect('/auth/2fa');
-        }
-
-        const token = generateToken(user._id);
-        res.cookie('jwt', token, { 
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        });
-        
-        req.flash('success', 'Logged in successfully');
-        res.redirect('/');
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Server error');
-        res.redirect('/auth/login');
-    }
-};
-
-// @desc    Logout user
-// @route   GET /auth/logout
+// Logout (GET /logout)
 exports.logout = (req, res) => {
-    res.clearCookie('jwt');
-    req.flash('success', 'Logged out successfully');
-    res.redirect('/auth/login');
+  // If using sessions or tokens, destroy session or instruct client to delete token
+  // Here, just a placeholder response
+  res.send('User logged out (implement session/token invalidation)');
 };
 
-// @desc    Show 2FA verification form
-// @route   GET /auth/2fa
+// Show register form (GET /register)
+exports.showRegisterForm = (req, res) => {
+  // Render a registration page or send message for API
+  res.send('Render registration form here');
+};
+
+// Register (POST /register)
+exports.register = async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email',
+      [username, email, hashedPassword]
+    );
+
+    res.status(201).json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('Register Error:', err);
+    res.status(500).json({ message: 'Registration failed' });
+  }
+};
+
+// Login (POST /login)
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    const user = userResult.rows[0];
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+
+    res.json({ token, user: { id: user.id, username: user.username, email: user.email } });
+  } catch (err) {
+    console.error('Login Error:', err);
+    res.status(500).json({ message: 'Login failed' });
+  }
+};
+
+// Show 2FA form (GET /2fa)
 exports.show2faForm = (req, res) => {
-    if (!req.session.tempUserId) {
-        return res.redirect('/auth/login');
-    }
-    res.render('auth/2fa', { 
-        title: 'Two-Factor Authentication' 
-    });
+  res.send('Render 2FA verification form here');
 };
 
-// @desc    Verify 2FA code
-// @route   POST /auth/2fa
-exports.verify2fa = async (req, res) => {
-    const { code } = req.body;
-    
-    try {
-        const user = await User.findById(req.session.tempUserId);
-        if (!user) {
-            req.flash('error', 'User not found');
-            return res.redirect('/auth/login');
-        }
-
-        const verified = speakeasy.totp.verify({
-            secret: user.twoFactorSecret,
-            encoding: 'base32',
-            token: code
-        });
-
-        if (!verified) {
-            req.flash('error', 'Invalid verification code');
-            return res.redirect('/auth/2fa');
-        }
-
-        delete req.session.tempUserId;
-        const token = generateToken(user._id);
-        res.cookie('jwt', token, { 
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        });
-        
-        req.flash('success', 'Logged in successfully');
-        res.redirect('/');
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Server error');
-        res.redirect('/auth/login');
-    }
+// Verify 2FA (POST /2fa)
+exports.verify2fa = (req, res) => {
+  // Implement your 2FA verification logic here
+  res.send('2FA verification logic not implemented yet');
 };
 
-// @desc    Show 2FA setup page
-// @route   GET /auth/setup-2fa
-exports.show2faSetup = async (req, res) => {
-    try {
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            req.flash('error', 'User not found');
-            return res.redirect('/profile');
-        }
-
-        if (user.twoFactorEnabled) {
-            req.flash('info', '2FA is already enabled');
-            return res.redirect('/profile');
-        }
-
-        const secret = speakeasy.generateSecret({
-            name: `AdidasApp:${user.email}`
-        });
-
-        QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
-            if (err) {
-                console.error(err);
-                req.flash('error', 'Error generating QR code');
-                return res.redirect('/profile');
-            }
-
-            user.twoFactorSecret = secret.base32;
-            user.save();
-
-            res.render('auth/setup-2fa', { 
-                title: 'Setup Two-Factor Authentication',
-                qrCodeUrl: data_url,
-                secret: secret.base32
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Server error');
-        res.redirect('/profile');
-    }
+// Show 2FA setup form (GET /setup-2fa)
+exports.show2faSetup = (req, res) => {
+  res.send('Render 2FA setup page here');
 };
 
-// @desc    Enable 2FA
-// @route   POST /auth/enable-2fa
-exports.enable2fa = async (req, res) => {
-    const { code } = req.body;
-    
-    try {
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            req.flash('error', 'User not found');
-            return res.redirect('/profile');
-        }
-
-        const verified = speakeasy.totp.verify({
-            secret: user.twoFactorSecret,
-            encoding: 'base32',
-            token: code
-        });
-
-        if (!verified) {
-            req.flash('error', 'Invalid verification code');
-            return res.redirect('/auth/setup-2fa');
-        }
-
-        user.twoFactorEnabled = true;
-        await user.save();
-        
-        req.flash('success', 'Two-factor authentication enabled successfully');
-        res.redirect('/profile');
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Server error');
-        res.redirect('/profile');
-    }
+// Enable 2FA (POST /enable-2fa)
+exports.enable2fa = (req, res) => {
+    res.send('Enable 2FA logic not implemented yet');
 };
-
-// Helper function to generate JWT
-function generateToken(id) {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d'
-    });
-}

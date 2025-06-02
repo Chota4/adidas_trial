@@ -13,7 +13,7 @@
     <div class="product-grid">
       <% featuredProducts.forEach(product => { %>
         <div class="product-card">
-          <a href="/products/<%= product._id %>">
+          <a href="/products/<%= product.id %>">
             <img src="<%= product.image %>" alt="<%= product.name %>">
             <h3><%= product.name %></h3>
             <div class="price">$<%= product.price.toFixed(2) %></div>

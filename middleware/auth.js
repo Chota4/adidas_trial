@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
-const User = require('../models/User');
 
+// Middleware assumes you injected req.models.User earlier in your routes
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -19,7 +19,16 @@ const protect = asyncHandler(async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+
+    // ✅ PostgreSQL: Use your custom model method
+    const user = await req.models.User.findById(decoded.id);
+
+    if (!user) {
+      res.status(401);
+      throw new Error('User not found');
+    }
+
+    req.user = user;
     next();
   } catch (err) {
     res.status(401);
@@ -28,12 +37,11 @@ const protect = asyncHandler(async (req, res, next) => {
 });
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
-    next();
-  } else {
-    res.status(401);
-    throw new Error('Not authorized as admin');
+  if (req.user && req.user.isadmin) { // 🧠 `isadmin` should match your DB column name
+    return next();
   }
+  res.status(401);
+  throw new Error('Not authorized as admin');
 };
 
 module.exports = { protect, admin };

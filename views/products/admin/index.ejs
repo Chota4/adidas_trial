@@ -18,16 +18,18 @@
     <tbody>
       <% products.forEach(product => { %>
         <tr>
-          <td><img src="<%= product.image %>" class="admin-thumbnail"></td>
+          <td>
+            <img src="<%= product.image %>" alt="Image of <%= product.name %>" class="admin-thumbnail" />
+          </td>
           <td><%= product.name %></td>
           <td>$<%= product.price.toFixed(2) %></td>
           <td class="actions">
-            <a href="/admin/products/<%= product._id %>/edit" class="btn-edit">
-              <i class="fas fa-edit"></i> Edit
+            <a href="/admin/products/<%= product._id %>/edit" class="btn-edit" aria-label="Edit <%= product.name %>">
+              <i class="fas fa-edit" aria-hidden="true"></i> Edit
             </a>
-            <form action="/admin/products/<%= product._id %>?_method=DELETE" method="POST">
-              <button type="submit" class="btn-delete">
-                <i class="fas fa-trash"></i> Delete
+            <form action="/admin/products/<%= product._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to delete <%= product.name %>?');" style="display:inline;">
+              <button type="submit" class="btn-delete" aria-label="Delete <%= product.name %>">
+                <i class="fas fa-trash" aria-hidden="true"></i> Delete
               </button>
             </form>
           </td>

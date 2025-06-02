@@ -1,19 +1,19 @@
 <div class="auth-container">
   <h1>Setup Two-Factor Authentication</h1>
-  
+
   <div class="qr-code-container">
     <p>Scan this QR code with your authenticator app:</p>
-    <img src="<%= qrCodeUrl %>" alt="QR Code">
+    <img src="<%= qrCodeUrl %>" alt="QR Code" />
     <p>Or enter this secret manually:</p>
     <div class="secret-code"><%= secret %></div>
   </div>
-  
+
   <form action="/auth/enable-2fa" method="POST" class="auth-form">
     <div class="form-group">
       <label for="2fa-code">Enter verification code</label>
-      <input type="text" id="2fa-code" name="code" maxlength="6" required>
+      <input type="text" id="2fa-code" name="code" maxlength="6" required autocomplete="one-time-code" />
     </div>
-    
+
     <button type="submit" class="btn btn-primary">Enable 2FA</button>
   </form>
 </div>

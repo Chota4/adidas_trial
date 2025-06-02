@@ -1,24 +1,33 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false },
-    twoFactorEnabled: { type: Boolean, default: false },
-    twoFactorSecret: String,
-    avatar: { type: String, default: '/images/default-avatar.png' }
-}, { timestamps: true });
+class UserModel {
+  constructor(pool) {
+    this.pool = pool;
+  }
 
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) next();
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-});
+  // Create a new user
+  async createUser({ name, email, password, isAdmin = false, avatar }) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const query = `
+      INSERT INTO users (name, email, password, is_admin, avatar)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    const values = [name, email, hashedPassword, isAdmin, avatar || '/images/default-avatar.png'];
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
 
-userSchema.methods.matchPassword = async function(enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
+  // Find user by email
+  async findByEmail(email) {
+    const result = await this.pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    return result.rows[0];
+  }
 
-module.exports = mongoose.model('User', userSchema);
+  // Compare passwords
+  async matchPassword(enteredPassword, hashedPassword) {
+    return await bcrypt.compare(enteredPassword, hashedPassword);
+  }
+}
+
+module.exports = UserModel;

@@ -1,41 +1,41 @@
 <%- include('../partials/head', { title: 'Your Shopping Cart' }) %>
 
-<div class="cart-container">
+<div class="cart-container" role="main" aria-label="Shopping Cart">
   <h1>Your Cart</h1>
   
   <% if (cart.items.length === 0) { %>
-    <div class="empty-cart">
-      <i class="fas fa-shopping-cart"></i>
+    <section class="empty-cart" aria-live="polite">
+      <i class="fas fa-shopping-cart" aria-hidden="true"></i>
       <p>Your cart is empty</p>
-      <a href="/products" class="btn btn-primary">Continue Shopping</a>
-    </div>
+      <a href="/products" class="btn btn-primary" role="button">Continue Shopping</a>
+    </section>
   <% } else { %>
-    <div class="cart-grid">
-      <div class="cart-items">
+    <section class="cart-grid">
+      <div class="cart-items" aria-label="Cart Items">
         <% cart.items.forEach(item => { %>
-          <div class="cart-item">
-            <img src="<%= item.product.image %>" alt="<%= item.product.name %>">
+          <article class="cart-item" aria-labelledby="item-<%= item.product._id %>-name">
+            <img src="<%= item.product.image %>" alt="<%= item.product.name %>" />
             <div class="item-details">
-              <h3><%= item.product.name %></h3>
+              <h3 id="item-<%= item.product._id %>-name"><%= item.product.name %></h3>
               <p class="price">$<%= item.product.price.toFixed(2) %></p>
-              <div class="quantity-controls">
-                <form action="/cart/decrease/<%= item.product._id %>" method="POST">
-                  <button type="submit" class="qty-btn">-</button>
+              <div class="quantity-controls" aria-label="Quantity controls for <%= item.product.name %>">
+                <form action="/cart/decrease/<%= item.product._id %>" method="POST" style="display:inline;">
+                  <button type="submit" class="qty-btn" aria-label="Decrease quantity" <%= item.quantity === 1 ? 'disabled' : '' %>>-</button>
                 </form>
-                <span class="quantity"><%= item.quantity %></span>
-                <form action="/cart/increase/<%= item.product._id %>" method="POST">
-                  <button type="submit" class="qty-btn">+</button>
+                <span class="quantity" aria-live="polite"><%= item.quantity %></span>
+                <form action="/cart/increase/<%= item.product._id %>" method="POST" style="display:inline;">
+                  <button type="submit" class="qty-btn" aria-label="Increase quantity">+</button>
                 </form>
               </div>
               <form action="/cart/remove/<%= item.product._id %>" method="POST">
-                <button type="submit" class="btn-remove">Remove</button>
+                <button type="submit" class="btn-remove" aria-label="Remove <%= item.product.name %> from cart">Remove</button>
               </form>
             </div>
-          </div>
+          </article>
         <% }) %>
       </div>
 
-      <div class="cart-summary">
+      <aside class="cart-summary" aria-label="Order Summary">
         <h3>Order Summary</h3>
         <div class="summary-row">
           <span>Subtotal</span>
@@ -45,13 +45,13 @@
           <span>Shipping</span>
           <span>Free</span>
         </div>
-        <div class="summary-row total">
+        <div class="summary-row total" aria-live="polite">
           <span>Total</span>
           <span>$<%= cart.totalPrice.toFixed(2) %></span>
         </div>
-        <a href="/checkout" class="btn btn-primary btn-checkout">Proceed to Checkout</a>
-      </div>
-    </div>
+        <a href="/checkout" class="btn btn-primary btn-checkout" role="button">Proceed to Checkout</a>
+      </aside>
+    </section>
   <% } %>
 </div>
 
