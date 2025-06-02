@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Imageupload = require('../utils/uploadImage');
 const {
   getProducts,
   getProduct,
@@ -12,6 +13,7 @@ const {
 const { protect, admin } = require('../middleware/auth');
 const upload = require('../utils/uploadImage');
 
+// Public routes
 router.route('/')
   .get(getProducts);
 
@@ -22,13 +24,19 @@ router.route('/:id')
 router.route('/admin')
   .get(protect, admin, getProducts);
 
-router.route('/admin/new')
-  .get(protect, admin, showNewProductForm)
-  .post(protect, admin, upload.single('image'), createProduct);
+// Product creation route
+router.post('/admin/new', 
+protect, 
+admin, 
+upload.single('image'), // Middleware for single image upload
+createProduct
+);
 
-router.route('/admin/:id/edit')
-  .get(protect, admin, showEditProductForm)
-  .put(protect, admin, upload.single('image'), updateProduct)
-  .delete(protect, admin, deleteProduct);
-
+// Product update route  
+router.put('/admin/:id',
+protect,
+admin,
+upload.single('image'), // Middleware for single image upload
+updateProduct
+);
 module.exports = router;

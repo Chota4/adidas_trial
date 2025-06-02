@@ -13,8 +13,14 @@ const productSchema = new mongoose.Schema(
       trim: true,
     },
     image: {
-      type: String,
-      required: [true, 'Please add an image'],
+      url: {
+        type: String,
+        required: [true, 'Please add an image URL'],
+      },
+      publicId: {
+        type: String,
+        required: [true, 'Please add an image publicId'],
+      },
     },
     brand: {
       type: String,

@@ -11,6 +11,48 @@ exports.showLoginForm = (req, res) => {
     });
 };
 
+// @desc    Show registration form
+// @route   GET /auth/register
+exports.showRegisterForm = (req, res) => {
+    res.render('auth/register', {
+        title: 'Register'
+    });
+};
+
+// @desc    Register user
+// @route   POST /auth/register
+exports.register = async (req, res) => {
+    const { name, email, password } = req.body;
+    
+    try {
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            req.flash('error', 'Email already registered');
+            return res.redirect('/auth/register');
+        }
+
+        const user = await User.create({
+            name,
+            email,
+            password
+        });
+
+        const token = generateToken(user._id);
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        });
+
+        req.flash('success', 'Registration successful!');
+        res.redirect('/');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Registration failed');
+        res.redirect('/auth/register');
+    }
+};
+
 // @desc    Login user
 // @route   POST /auth/login
 exports.login = async (req, res) => {
@@ -25,17 +67,15 @@ exports.login = async (req, res) => {
         }
 
         if (user.twoFactorEnabled) {
-            // Store user ID in session for 2FA verification
             req.session.tempUserId = user._id;
             return res.redirect('/auth/2fa');
         }
 
-        // If 2FA not enabled, log in directly
         const token = generateToken(user._id);
         res.cookie('jwt', token, { 
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000
         });
         
         req.flash('success', 'Logged in successfully');
@@ -45,6 +85,14 @@ exports.login = async (req, res) => {
         req.flash('error', 'Server error');
         res.redirect('/auth/login');
     }
+};
+
+// @desc    Logout user
+// @route   GET /auth/logout
+exports.logout = (req, res) => {
+    res.clearCookie('jwt');
+    req.flash('success', 'Logged out successfully');
+    res.redirect('/auth/login');
 };
 
 // @desc    Show 2FA verification form
@@ -81,13 +129,12 @@ exports.verify2fa = async (req, res) => {
             return res.redirect('/auth/2fa');
         }
 
-        // Successful verification
         delete req.session.tempUserId;
         const token = generateToken(user._id);
         res.cookie('jwt', token, { 
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000
         });
         
         req.flash('success', 'Logged in successfully');
@@ -114,12 +161,10 @@ exports.show2faSetup = async (req, res) => {
             return res.redirect('/profile');
         }
 
-        // Generate a secret
         const secret = speakeasy.generateSecret({
             name: `AdidasApp:${user.email}`
         });
 
-        // Generate QR code URL
         QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
             if (err) {
                 console.error(err);
@@ -127,7 +172,6 @@ exports.show2faSetup = async (req, res) => {
                 return res.redirect('/profile');
             }
 
-            // Save the secret temporarily (not enabling 2FA yet)
             user.twoFactorSecret = secret.base32;
             user.save();
 
