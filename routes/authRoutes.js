@@ -1,37 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-// Load PostgreSQL model (optional for future use)
-const UserModel = require('../models/User');
-
-// Inject PostgreSQL model into req.models (optional)
-router.use((req, res, next) => {
-  const pool = req.app.locals.pool;
-  req.models = {
-    User: new UserModel(pool),
-  };
-  next();
-});
-
-// Load middleware
-let protect;
-try {
-  protect = require('../middleware/auth').protect;
-} catch (err) {
-  console.error('❌ Failed to load auth middleware:', err);
-  protect = (req, res, next) => next(); // Fallback if protect not implemented
-}
-
-// Load controller
-let controllers;
-try {
-  controllers = require('../controllers/authController');
-} catch (err) {
-  console.error('❌ Failed to load authController:', err);
-  process.exit(1);
-}
-
-// Destructure controller methods
+const { body } = require('express-validator');
 const {
   showLoginForm,
   login,
@@ -42,19 +11,20 @@ const {
   verify2fa,
   show2faSetup,
   enable2fa
-} = controllers;
+} = require('../controllers/authController');
+const { guest, auth } = require('../middleware/auth');
 
-// Verify all required methods exist
-[
-  'showLoginForm', 'login', 'logout',
-  'showRegisterForm', 'register',
-  'show2faForm', 'verify2fa',
-  'show2faSetup', 'enable2fa'
-].forEach(method => {
-  if (typeof controllers[method] !== 'function') {
-    console.error(`❌ Missing controller method: ${method}`);
-  }
-});
+// Validation middleware
+const loginValidation = [
+  body('email').isEmail().withMessage('Enter a valid email'),
+  body('password').notEmpty().withMessage('Password is required')
+];
+
+const registerValidation = [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Enter a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+];
 
 // Debug route
 router.get('/debug-test', (req, res) => {
@@ -63,16 +33,33 @@ router.get('/debug-test', (req, res) => {
 
 // Authentication routes
 router.get('/login', showLoginForm);
-router.post('/login', login);
-router.get('/logout', logout);
+router.post('/login', guest, loginValidation, login);
+router.post('/logout', auth, logout);
 router.get('/register', showRegisterForm);
-router.post('/register', register);
+router.post('/register', guest, registerValidation, register);
 
 // 2FA routes
 router.get('/2fa', show2faForm);
 router.post('/2fa', verify2fa);
-router.get('/setup-2fa', protect, show2faSetup);
-router.post('/enable-2fa', protect, enable2fa);
+router.get('/setup-2fa', auth, show2faSetup);
+router.post('/enable-2fa', auth, enable2fa);
+
+// OAuth routes (placeholders)
+router.get('/google', guest, (req, res) => {
+  res.status(501).json({ message: 'Google OAuth not implemented yet' });
+});
+
+router.get('/google/callback', guest, (req, res) => {
+  res.status(501).json({ message: 'Google OAuth callback not implemented yet' });
+});
+
+router.get('/facebook', guest, (req, res) => {
+  res.status(501).json({ message: 'Facebook OAuth not implemented yet' });
+});
+
+router.get('/facebook/callback', guest, (req, res) => {
+  res.status(501).json({ message: 'Facebook OAuth callback not implemented yet' });
+});
 
 // Global error handler
 router.use((err, req, res, next) => {

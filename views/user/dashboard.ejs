@@ -1,0 +1,138 @@
+<div class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Welcome Section -->
+        <div class="bg-black text-white rounded-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">Welcome back, <%= user.name %></h1>
+                    <p class="text-gray-300">Member since <%= new Date(user.created_at).toLocaleDateString() %></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xl font-semibold">Loyalty Points</p>
+                    <p class="text-3xl font-bold text-yellow-400"><%= user.loyalty_points || 0 %></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Profile Section -->
+            <div class="col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold">Profile Information</h2>
+                        <a href="/user/profile/edit" class="text-black hover:text-gray-700">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Name</label>
+                            <p class="mt-1"><%= user.name %></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Email</label>
+                            <p class="mt-1"><%= user.email %></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Phone</label>
+                            <p class="mt-1"><%= user.phone || 'Not provided' %></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">Default Address</label>
+                            <p class="mt-1"><%= user.address || 'No address added' %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
+                    <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+                        <div class="space-y-4">
+                            <% orders.forEach(order => { %>
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p class="font-semibold">Order #<%= order.order_number %></p>
+                                            <p class="text-sm text-gray-500">
+                                                <%= new Date(order.created_at).toLocaleDateString() %>
+                                            </p>
+                                        </div>
+                                        <span class="px-2 py-1 rounded text-sm
+                                            <%= order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                                               order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                                               order.status === 'shipped' ? 'bg-yellow-100 text-yellow-800' :
+                                               'bg-gray-100 text-gray-800' %>">
+                                            <%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-bold">$<%= order.total.toFixed(2) %></p>
+                                        <a href="/user/orders/<%= order.id %>" 
+                                           class="text-black hover:text-gray-700">
+                                            View Details <i class="fas fa-chevron-right ml-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <a href="/user/orders" class="text-black hover:text-gray-700">
+                                View All Orders <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-8">
+                            <i class="fas fa-shopping-bag text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">No orders yet</p>
+                            <a href="/products" class="inline-block mt-4 text-black hover:text-gray-700">
+                                Start Shopping <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <a href="/user/wishlist" 
+               class="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition duration-300">
+                <i class="fas fa-heart text-2xl mb-2 text-red-500"></i>
+                <h3 class="font-semibold">Wishlist</h3>
+                <p class="text-sm text-gray-500">View saved items</p>
+            </a>
+
+            <a href="/user/addresses" 
+               class="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition duration-300">
+                <i class="fas fa-map-marker-alt text-2xl mb-2 text-blue-500"></i>
+                <h3 class="font-semibold">Addresses</h3>
+                <p class="text-sm text-gray-500">Manage addresses</p>
+            </a>
+
+            <a href="/user/payment-methods" 
+               class="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition duration-300">
+                <i class="fas fa-credit-card text-2xl mb-2 text-green-500"></i>
+                <h3 class="font-semibold">Payment Methods</h3>
+                <p class="text-sm text-gray-500">Manage payments</p>
+            </a>
+
+            <a href="/user/settings" 
+               class="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition duration-300">
+                <i class="fas fa-cog text-2xl mb-2 text-gray-500"></i>
+                <h3 class="font-semibold">Settings</h3>
+                <p class="text-sm text-gray-500">Account preferences</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any dashboard-specific JavaScript functionality here
+    // For example, real-time order status updates or notifications
+});
+</script> 

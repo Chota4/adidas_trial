@@ -1,0 +1,70 @@
+<nav class="bg-black text-white">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <a href="/" class="flex items-center">
+                <img src="/images/adidas-logo.png" alt="Adidas Logo" class="h-8 w-auto">
+            </a>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="/" class="hover:text-gray-300">Home</a>
+                <a href="/products" class="hover:text-gray-300">Products</a>
+                <% if (locals.user) { %>
+                    <a href="/cart" class="hover:text-gray-300">
+                        <i class="fas fa-shopping-cart"></i>
+                        <% if (locals.cartCount) { %>
+                            <span class="bg-red-500 text-white rounded-full px-2 py-1 text-xs"><%= cartCount %></span>
+                        <% } %>
+                    </a>
+                    <div class="relative group">
+                        <button class="flex items-center hover:text-gray-300">
+                            <span><%= user.name %></span>
+                            <i class="fas fa-chevron-down ml-2"></i>
+                        </button>
+                        <div class="absolute right-0 w-48 py-2 mt-2 bg-white rounded-md shadow-xl hidden group-hover:block">
+                            <a href="/profile" class="block px-4 py-2 text-black hover:bg-gray-100">Profile</a>
+                            <% if (user.role === 'admin') { %>
+                                <a href="/admin/dashboard" class="block px-4 py-2 text-black hover:bg-gray-100">Admin Dashboard</a>
+                            <% } %>
+                            <a href="/auth/logout" class="block px-4 py-2 text-black hover:bg-gray-100">Logout</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/auth/login" class="hover:text-gray-300">Login</a>
+                    <a href="/auth/register" class="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200">Sign Up</a>
+                <% } %>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden" id="mobile-menu-button">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="/" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Home</a>
+                <a href="/products" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Products</a>
+                <% if (locals.user) { %>
+                    <a href="/cart" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Cart</a>
+                    <a href="/profile" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Profile</a>
+                    <% if (user.role === 'admin') { %>
+                        <a href="/admin/dashboard" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Admin Dashboard</a>
+                    <% } %>
+                    <a href="/auth/logout" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Login</a>
+                    <a href="/auth/register" class="block px-3 py-2 hover:bg-gray-700 rounded-md">Sign Up</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+</script> 

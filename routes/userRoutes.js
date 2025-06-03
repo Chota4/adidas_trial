@@ -22,18 +22,20 @@ try {
   controller = {};
 }
 
-const {
-  getProfile,
-  updateProfile,
-} = controller;
+const { getProfile, updateProfile, deleteUser } = controller;
 
-// Protected profile routes
+// Ensure required functions exist before routing
 if (getProfile && updateProfile) {
   router.route('/profile')
     .get(protect, getProfile)
     .put(protect, updateProfile);
 } else {
   console.warn('⚠️ getProfile or updateProfile not defined in controller');
+}
+
+// Optional route for deleting account
+if (deleteUser) {
+  router.delete('/profile', protect, deleteUser);
 }
 
 module.exports = router;

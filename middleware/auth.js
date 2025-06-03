@@ -1,47 +1,97 @@
 const jwt = require('jsonwebtoken');
-const asyncHandler = require('express-async-handler');
+const User = require('../models/user');
 
-// Middleware assumes you injected req.models.User earlier in your routes
-const protect = asyncHandler(async (req, res, next) => {
-  let token;
+// Verify JWT token middleware
+const auth = async (req, res, next) => {
+    try {
+        // Get token from cookie
+        const token = req.cookies.token;
+        
+        if (!token) {
+            throw new Error('No token provided');
+        }
 
-  if (
-    req.cookies.jwt ||
-    (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
-  ) {
-    token = req.cookies.jwt || req.headers.authorization.split(' ')[1];
-  }
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        
+        // Find user
+        const user = await User.findById(decoded.id);
+        
+        if (!user) {
+            throw new Error('User not found');
+        }
 
-  if (!token) {
-    res.status(401);
-    throw new Error('Not authorized, no token');
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // ✅ PostgreSQL: Use your custom model method
-    const user = await req.models.User.findById(decoded.id);
-
-    if (!user) {
-      res.status(401);
-      throw new Error('User not found');
+        // Attach user to request
+        req.user = user;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: 'Please authenticate' });
     }
-
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(401);
-    throw new Error('Not authorized, token failed');
-  }
-});
-
-const admin = (req, res, next) => {
-  if (req.user && req.user.isadmin) { // 🧠 `isadmin` should match your DB column name
-    return next();
-  }
-  res.status(401);
-  throw new Error('Not authorized as admin');
 };
 
-module.exports = { protect, admin };
+// Check if user is admin
+const isAdmin = async (req, res, next) => {
+    try {
+        if (!req.user || req.user.role !== 'admin') {
+            throw new Error('Access denied');
+        }
+        next();
+    } catch (error) {
+        res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    }
+};
+
+// Guest only middleware (for login/register pages)
+const guest = async (req, res, next) => {
+    try {
+        const token = req.cookies.token;
+        
+        if (token) {
+            // Redirect to dashboard if already logged in
+            return res.redirect('/dashboard');
+        }
+        
+        next();
+    } catch (error) {
+        next();
+    }
+};
+
+// Flash message middleware
+const flashMessage = (req, res, next) => {
+    res.locals.messages = req.flash();
+    next();
+};
+
+// Set user in locals for views
+const setUserLocals = async (req, res, next) => {
+    try {
+        const token = req.cookies.token;
+        
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const user = await User.findById(decoded.id);
+            
+            if (user) {
+                res.locals.user = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                };
+            }
+        }
+        
+        next();
+    } catch (error) {
+        next();
+    }
+};
+
+module.exports = {
+    auth,
+    isAdmin,
+    guest,
+    flashMessage,
+    setUserLocals
+};

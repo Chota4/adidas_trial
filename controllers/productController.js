@@ -32,9 +32,8 @@ exports.createProduct = async (req, res) => {
     const insertQuery = `
       INSERT INTO products (name, price, description, brand, image)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id
+      RETURNING id;
     `;
-
     const values = [name, price, description, brand, imageUrl];
     const result = await pool.query(insertQuery, values);
 
@@ -46,7 +45,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Get all products (public and admin)
+// Get all products
 exports.getProducts = async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products ORDER BY id DESC');
@@ -57,7 +56,7 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-// Get single product by id
+// Get product by ID
 exports.getProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -72,7 +71,7 @@ exports.getProduct = async (req, res) => {
   }
 };
 
-// Show edit product form
+// Show edit form
 exports.showEditProductForm = async (req, res) => {
   try {
     const { id } = req.params;
@@ -101,10 +100,9 @@ exports.updateProduct = async (req, res) => {
       imageUrl = result.secure_url;
     }
 
-    // If image uploaded, update image; else keep old image
     const updateQuery = imageUrl
-      ? `UPDATE products SET name=$1, price=$2, description=$3, brand=$4, image=$5 WHERE id=$6`
-      : `UPDATE products SET name=$1, price=$2, description=$3, brand=$4 WHERE id=$5`;
+      ? `UPDATE products SET name = $1, price = $2, description = $3, brand = $4, image = $5 WHERE id = $6`
+      : `UPDATE products SET name = $1, price = $2, description = $3, brand = $4 WHERE id = $5`;
 
     const values = imageUrl
       ? [name, price, description, brand, imageUrl, id]
